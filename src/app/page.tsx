@@ -1,6 +1,8 @@
 import { loadSchedule, submitPayment } from './actions';
 import { formatCents } from '../lib/money';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const schedule = await loadSchedule();
   const balance =
