@@ -9,6 +9,7 @@ import {
 } from '../db/repository';
 import { generateSchedule, type ScheduleResult } from '../lib/amortization';
 import { dollarsToCents } from '../lib/money';
+import { requireSeller } from '../lib/current-role';
 
 export async function loadSchedule(): Promise<ScheduleResult> {
   const loanId = await ensureAnchorRiverLoan();
@@ -18,6 +19,7 @@ export async function loadSchedule(): Promise<ScheduleResult> {
 }
 
 export async function submitPayment(formData: FormData): Promise<void> {
+  await requireSeller();
   const loanId = await ensureAnchorRiverLoan();
   const periodIndex = Number(formData.get('periodIndex'));
   const dollars = Number(formData.get('amountDollars'));
