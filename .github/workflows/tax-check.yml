@@ -16,7 +16,9 @@ jobs:
           node-version: '20'
 
       - name: Install Playwright
-        run: npm i -D playwright@latest
+        # --legacy-peer-deps: the scraper only needs Playwright; skip the app's
+        # React 19 / Clerk peer-dependency resolution which would otherwise fail.
+        run: npm i -D playwright@latest --legacy-peer-deps
 
       - name: Install Chromium browser
         run: npx playwright install --with-deps chromium
