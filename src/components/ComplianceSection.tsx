@@ -40,6 +40,7 @@ export function ComplianceSection({
                 <th scope="col">Due date</th>
                 <th scope="col">Delinquency date</th>
                 <th scope="col">Reminder trigger</th>
+                <th scope="col" className="num">Amount</th>
                 <th scope="col">Status</th>
                 <th scope="col">Proof</th>
                 {(role === 'buyer' || role === 'seller') && <th scope="col">Action</th>}
@@ -51,10 +52,43 @@ export function ComplianceSection({
                   key={t.id}
                   className={t.status === 'paid' ? 'row-paid' : undefined}
                 >
-                  <td>{t.parcelGroup}</td>
+                  <td>
+                    {t.parcelUrl ? (
+                      <>
+                        {t.parcelGroup}
+                        {t.parcelPin && (
+                          <span style={{ fontSize: '0.75rem', marginLeft: 4, color: 'var(--sub)' }}>
+                            PIN {t.parcelPin}
+                          </span>
+                        )}
+                        {' '}
+                        <a
+                          href={t.parcelUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`View ${t.parcelGroup} on the Kenai Borough tax site (opens in new tab)`}
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          Borough page
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        {t.parcelGroup}
+                        {t.parcelPin && (
+                          <span style={{ fontSize: '0.75rem', marginLeft: 4, color: 'var(--sub)' }}>
+                            PIN {t.parcelPin}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </td>
                   <td>{t.dueDateISO}</td>
                   <td>{t.delinquencyDateISO}</td>
                   <td>{reminderTriggerDate(t.delinquencyDateISO)}</td>
+                  <td className="num">
+                    {t.amountCents != null ? formatCents(t.amountCents) : <span aria-hidden="true">—</span>}
+                  </td>
                   <td>
                     <strong>{t.status === 'paid' ? 'Paid' : 'Open'}</strong>
                     {t.paidBy && (
@@ -102,7 +136,7 @@ export function ComplianceSection({
               ))}
               {taxObligations.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ color: 'var(--sub)', fontStyle: 'italic', padding: 12 }}>
+                  <td colSpan={8} style={{ color: 'var(--sub)', fontStyle: 'italic', padding: 12 }}>
                     No tax obligations recorded yet.
                   </td>
                 </tr>
@@ -132,6 +166,18 @@ export function ComplianceSection({
                     <label htmlFor="taxDelinquencyDate">Delinquency date</label>
                     <input id="taxDelinquencyDate" name="delinquencyDateISO" type="date" required />
                   </div>
+                  <div className="form-field">
+                    <label htmlFor="taxParcelPin">Parcel PIN (optional)</label>
+                    <input id="taxParcelPin" name="parcelPin" type="text" />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="taxParcelUrl">Borough page URL (optional)</label>
+                    <input id="taxParcelUrl" name="parcelUrl" type="url" style={{ width: 280 }} />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="taxAmountDollars">Amount ($, optional)</label>
+                    <input id="taxAmountDollars" name="amountDollars" type="number" step="0.01" min="0" style={{ width: 120 }} />
+                  </div>
                   <div className="form-field" style={{ justifyContent: 'flex-end' }}>
                     <SubmitButton variant="primary">Add</SubmitButton>
                   </div>
@@ -147,6 +193,8 @@ export function ComplianceSection({
         <h2>Hazard Insurance</h2>
         <p className="card-description">
           Fire / extended-coverage required; seller must be named loss payee (Deed of Trust §A.2).
+          <br />
+          <em>Provided by the buyer; seller named as loss payee.</em>
         </p>
 
         <div className="table-wrap">
@@ -213,7 +261,7 @@ export function ComplianceSection({
           </table>
         </div>
 
-        {role === 'seller' && (
+        {(role === 'buyer' || role === 'seller') && (
           <details style={{ marginTop: 16 }}>
             <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', color: 'var(--accent)' }}>
               + Add insurance policy
@@ -224,7 +272,7 @@ export function ComplianceSection({
               style={{ marginTop: 12 }}
             >
               <fieldset>
-                <legend>New insurance policy (seller only)</legend>
+                <legend>New insurance policy (buyer or seller)</legend>
                 <div className="form-row">
                   <div className="form-field">
                     <label htmlFor="insCarrier">Carrier</label>
