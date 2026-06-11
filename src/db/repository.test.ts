@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
-const hasDb = !!process.env.DATABASE_URL;
+const hasDb = !!(process.env.DATABASE_URL_TEST || process.env.DATABASE_URL);
 
 describe.skipIf(!hasDb)('repository (integration)', () => {
   let repo: typeof import('./repository');
@@ -27,5 +27,22 @@ describe.skipIf(!hasDb)('repository (integration)', () => {
     const applied = await repo.getAppliedPayments(loanId);
     expect(applied.length).toBeGreaterThanOrEqual(1);
     expect(applied[0].amountCents).toBe(187_218);
+  });
+
+  it('aggregates an active credit into applied payments and excludes reversed ones', async () => {
+    await repo.addExpenseCredit(loanId, {
+      periodIndex: 2,
+      amountCents: 50_000,
+      description: 'Paid borough tax',
+      receiptUrl: null,
+      createdBy: 'user_test',
+    });
+    const applied = await repo.getAppliedPayments(loanId);
+    expect(applied[1].amountCents).toBeGreaterThanOrEqual(50_000);
+
+    const [credit] = await repo.listExpenseCredits(loanId);
+    await repo.reverseExpenseCredit(credit.id, 'user_seller');
+    const list = await repo.listExpenseCredits(loanId);
+    expect(list.find((c) => c.id === credit.id)?.status).toBe('reversed');
   });
 });
