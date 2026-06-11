@@ -15,6 +15,9 @@ export async function addTaxObligation(input: {
   parcelGroup: string;
   dueDateISO: string;
   delinquencyDateISO: string;
+  parcelPin?: string | null;
+  parcelUrl?: string | null;
+  amountCents?: number | null;
   createdBy: string;
 }): Promise<TaxObligationRow> {
   const [row] = await db

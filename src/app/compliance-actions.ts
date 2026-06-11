@@ -28,6 +28,10 @@ export async function createTaxObligation(formData: FormData): Promise<void> {
   const parcelGroup = String(formData.get('parcelGroup') ?? '').trim();
   const dueDateISO = String(formData.get('dueDateISO') ?? '').trim();
   const delinquencyDateISO = String(formData.get('delinquencyDateISO') ?? '').trim();
+  const parcelPin = String(formData.get('parcelPin') ?? '').trim() || null;
+  const parcelUrl = String(formData.get('parcelUrl') ?? '').trim() || null;
+  const amountRaw = Number(formData.get('amountDollars'));
+  const amountCents = Number.isFinite(amountRaw) && amountRaw > 0 ? Math.round(amountRaw * 100) : null;
 
   if (!parcelGroup) throw new Error('parcelGroup is required');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDateISO)) throw new Error('dueDateISO must be YYYY-MM-DD');
@@ -36,7 +40,7 @@ export async function createTaxObligation(formData: FormData): Promise<void> {
   if (delinquencyDateISO <= dueDateISO)
     throw new Error('delinquencyDateISO must be after dueDateISO');
 
-  await addTaxObligation({ parcelGroup, dueDateISO, delinquencyDateISO, createdBy: userId! });
+  await addTaxObligation({ parcelGroup, dueDateISO, delinquencyDateISO, parcelPin, parcelUrl, amountCents, createdBy: userId! });
   revalidatePath('/');
 }
 
@@ -80,8 +84,10 @@ export async function loadTaxObligations() {
  * a declarations page (PDF or image).
  */
 export async function createInsurancePolicy(formData: FormData): Promise<void> {
-  await requireSeller();
-  const { userId } = await auth();
+  const { userId, isAuthenticated } = await auth();
+  if (!isAuthenticated || !userId) throw new Error('Unauthorized');
+  const role = await getCurrentRole();
+  if (role !== 'buyer' && role !== 'seller') throw new Error('Forbidden');
 
   const carrier = String(formData.get('carrier') ?? '').trim();
   const policyNumber = String(formData.get('policyNumber') ?? '').trim();
