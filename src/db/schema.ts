@@ -84,3 +84,38 @@ export const royaltyPeriods = pgTable('royalty_periods', {
 });
 
 export type RoyaltyPeriodRow = typeof royaltyPeriods.$inferSelect;
+
+export const taxObligations = pgTable('tax_obligations', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  parcelGroup: text('parcel_group').notNull(), // e.g. "Parcels A & B"
+  dueDateISO: date('due_date_iso').notNull(),
+  delinquencyDateISO: date('delinquency_date_iso').notNull(),
+  status: text('status', { enum: ['open', 'paid'] })
+    .notNull()
+    .default('open'),
+  proofUrl: text('proof_url'),
+  paidBy: text('paid_by'), // Clerk user id, null until paid
+  paidAt: timestamp('paid_at'),
+  createdBy: text('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type TaxObligationRow = typeof taxObligations.$inferSelect;
+
+export const insurancePolicies = pgTable('insurance_policies', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  carrier: text('carrier').notNull(),
+  policyNumber: text('policy_number').notNull(),
+  coverageCents: bigint('coverage_cents', { mode: 'number' }).notNull(),
+  effectiveDateISO: date('effective_date_iso').notNull(),
+  expirationDateISO: date('expiration_date_iso').notNull(),
+  lossPayeeConfirmed: integer('loss_payee_confirmed').notNull().default(0), // 0=false, 1=true
+  declarationsUrl: text('declarations_url'),
+  status: text('status', { enum: ['active', 'lapsed'] })
+    .notNull()
+    .default('active'),
+  createdBy: text('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type InsurancePolicyRow = typeof insurancePolicies.$inferSelect;
