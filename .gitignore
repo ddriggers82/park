@@ -3,3 +3,7 @@ node_modules
 .env.local
 *.tsbuildinfo
 next-env.d.ts
+.vercel
+rvpark/Checking.csv
+rvpark/*.csv
+.playwright-mcp/
