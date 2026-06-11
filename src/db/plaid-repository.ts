@@ -3,16 +3,19 @@ import { eq } from 'drizzle-orm';
 import { db } from './client';
 import { plaidItems, payments } from './schema';
 import type { PlaidItemRow } from './schema';
+import { encryptSecret, decryptSecret } from '../lib/crypto';
 
-// TODO (secure-phase): encrypt accessToken with PLAID_TOKEN_ENCRYPTION_KEY before insert,
-// and decrypt on read. Currently stored plaintext in Neon (disk-encrypted but not
-// application-level encrypted). A DB credential leak would expose the access token.
+// Plaid access tokens are encrypted at rest with AES-256-GCM (see src/lib/crypto.ts).
+// They are encrypted on write (savePlaidItem) and decrypted on read (getPlaidItem),
+// so callers always see plaintext. Neon also encrypts disk, but this guards against a
+// DB-credential leak exposing the raw token.
 
 export async function savePlaidItem(
   loanId: number,
   accessToken: string,
   itemId: string,
 ): Promise<PlaidItemRow> {
+  const encrypted = encryptSecret(accessToken);
   // Upsert: if an item already exists for this loan, replace it (seller re-connects).
   const existing = await db
     .select()
@@ -22,16 +25,16 @@ export async function savePlaidItem(
   if (existing.length > 0) {
     const [updated] = await db
       .update(plaidItems)
-      .set({ accessToken, itemId, syncCursor: null, updatedAt: new Date() })
+      .set({ accessToken: encrypted, itemId, syncCursor: null, updatedAt: new Date() })
       .where(eq(plaidItems.id, existing[0].id))
       .returning();
-    return updated;
+    return { ...updated, accessToken };
   }
   const [inserted] = await db
     .insert(plaidItems)
-    .values({ loanId, accessToken, itemId })
+    .values({ loanId, accessToken: encrypted, itemId })
     .returning();
-  return inserted;
+  return { ...inserted, accessToken };
 }
 
 export async function getPlaidItem(loanId: number): Promise<PlaidItemRow | null> {
@@ -40,7 +43,8 @@ export async function getPlaidItem(loanId: number): Promise<PlaidItemRow | null>
     .from(plaidItems)
     .where(eq(plaidItems.loanId, loanId))
     .limit(1);
-  return row ?? null;
+  if (!row) return null;
+  return { ...row, accessToken: decryptSecret(row.accessToken) };
 }
 
 export async function updateSyncCursor(
