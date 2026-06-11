@@ -27,13 +27,13 @@ describe('normalizeToPositiveCents', () => {
 
 describe('isIncomingDeposit', () => {
   it('returns true for negative amount (money entering account)', () => {
-    expect(isIncomingDeposit({ amount: -1872.18, name: "KYLLONENS RV PARK" })).toBe(true);
+    expect(isIncomingDeposit({ amount: -1872.18 })).toBe(true);
   });
   it('returns false for positive amount (money leaving account)', () => {
-    expect(isIncomingDeposit({ amount: 1872.18, name: "KYLLONENS RV PARK" })).toBe(false);
+    expect(isIncomingDeposit({ amount: 1872.18 })).toBe(false);
   });
   it('returns false for zero amount', () => {
-    expect(isIncomingDeposit({ amount: 0, name: "KYLLONENS RV PARK" })).toBe(false);
+    expect(isIncomingDeposit({ amount: 0 })).toBe(false);
   });
 });
 
