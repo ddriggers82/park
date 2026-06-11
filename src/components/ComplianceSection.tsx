@@ -29,7 +29,8 @@ export function ComplianceSection({
         <h2>Property Tax Obligations</h2>
         <p className="card-description">
           Kenai Peninsula Borough — buyer must pay at least 10 days before delinquency (Deed of
-          Trust §A.4).
+          Trust §A.4). Status is auto-verified weekly from the borough site; proof upload below is
+          an optional manual fallback.
         </p>
 
         <div className="table-wrap">
@@ -42,8 +43,9 @@ export function ComplianceSection({
                 <th scope="col">Reminder trigger</th>
                 <th scope="col" className="num">Amount</th>
                 <th scope="col">Status</th>
+                <th scope="col">Last checked</th>
                 <th scope="col">Proof</th>
-                {(role === 'buyer' || role === 'seller') && <th scope="col">Action</th>}
+                {(role === 'buyer' || role === 'seller') && <th scope="col">Action (optional)</th>}
               </tr>
             </thead>
             <tbody>
@@ -98,6 +100,14 @@ export function ComplianceSection({
                     )}
                   </td>
                   <td>
+                    {t.lastCheckedAt
+                      ? (t.lastCheckedAt instanceof Date
+                          ? t.lastCheckedAt
+                          : new Date(t.lastCheckedAt)
+                        ).toISOString().slice(0, 10)
+                      : <span style={{ color: 'var(--sub)', fontStyle: 'italic' }}>not yet</span>}
+                  </td>
+                  <td>
                     {t.proofUrl ? (
                       <a
                         href={t.proofUrl}
@@ -126,7 +136,7 @@ export function ComplianceSection({
                                 style={{ fontSize: '0.8rem' }}
                               />
                             </label>
-                            <SubmitButton variant="secondary">Mark paid</SubmitButton>
+                            <SubmitButton variant="secondary">Mark paid (manual)</SubmitButton>
                           </div>
                         </form>
                       )}
@@ -136,7 +146,7 @@ export function ComplianceSection({
               ))}
               {taxObligations.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ color: 'var(--sub)', fontStyle: 'italic', padding: 12 }}>
+                  <td colSpan={9} style={{ color: 'var(--sub)', fontStyle: 'italic', padding: 12 }}>
                     No tax obligations recorded yet.
                   </td>
                 </tr>
