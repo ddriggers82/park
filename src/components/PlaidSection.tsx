@@ -9,9 +9,15 @@ export async function PlaidSection() {
   const isConnected = item !== null;
 
   // If not connected, fetch a link token to render the Link button.
+  // Guard the network call so a Plaid outage cannot break the whole page.
   let linkToken: string | null = null;
+  let linkError = false;
   if (!isConnected) {
-    linkToken = await createLinkToken();
+    try {
+      linkToken = await createLinkToken();
+    } catch {
+      linkError = true;
+    }
   }
 
   return (
@@ -22,6 +28,9 @@ export async function PlaidSection() {
           <p>No bank account connected. Connect the seller&apos;s Wells Fargo to start pulling payments automatically.</p>
           <PlaidLinkButton linkToken={linkToken} onSuccess={exchangePublicToken} />
         </div>
+      )}
+      {!isConnected && linkError && (
+        <p style={{ color: '#a00' }}>Could not reach Plaid right now. Refresh to try connecting again.</p>
       )}
       {isConnected && (
         <div>

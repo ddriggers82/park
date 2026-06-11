@@ -1,12 +1,28 @@
 import { loadSchedule, submitPayment, submitCredit, reverseCredit, loadCredits } from './actions';
 import { formatCents } from '../lib/money';
 import { getCurrentRole } from '../lib/current-role';
+import LateFeesSection from '../components/LateFeesSection';
+import { RoyaltySection } from '../components/RoyaltySection';
+import { ComplianceSection } from '../components/ComplianceSection';
+import { PlaidSection } from '../components/PlaidSection';
+import { loadLateFeeSummary } from './late-fees-actions';
+import { loadRoyaltyPeriods } from './royalty-actions';
+import { loadTaxObligations, loadInsurancePolicies } from './compliance-actions';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const role = await getCurrentRole();
-  const [schedule, credits] = await Promise.all([loadSchedule(), loadCredits()]);
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const [schedule, credits, lateFeeSummary, royaltyPeriods, taxObligations, insurancePolicies] =
+    await Promise.all([
+      loadSchedule(),
+      loadCredits(),
+      loadLateFeeSummary(todayISO),
+      loadRoyaltyPeriods(),
+      loadTaxObligations(),
+      loadInsurancePolicies(),
+    ]);
 
   return (
     <main>
@@ -119,6 +135,15 @@ export default async function Home() {
           </tbody>
         </table>
       </section>
+      <LateFeesSection summary={lateFeeSummary} isSeller={role === 'seller'} />
+      <RoyaltySection role={role} periods={royaltyPeriods} />
+      <ComplianceSection
+        taxObligations={taxObligations}
+        insurancePolicies={insurancePolicies}
+        role={role}
+        todayISO={todayISO}
+      />
+      {role === 'seller' && <PlaidSection />}
     </main>
   );
 }
