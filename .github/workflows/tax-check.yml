@@ -1,0 +1,28 @@
+name: Borough Tax Check
+
+on:
+  schedule:
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check-taxes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: npm i -D playwright@latest
+
+      - name: Install Chromium browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run borough tax checker
+        run: node scripts/check-borough-taxes.mjs
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          TAX_SYNC_SECRET: ${{ secrets.TAX_SYNC_SECRET }}
