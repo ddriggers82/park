@@ -66,3 +66,21 @@ export const lateFeeWaivers = pgTable('late_fee_waivers', {
 });
 
 export type LateFeeWaiverRow = typeof lateFeeWaivers.$inferSelect;
+
+export const royaltyPeriods = pgTable('royalty_periods', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  year: integer('year').notNull(),
+  dueDate: date('due_date').notNull(), // 'YYYY-07-01' or 'YYYY-10-01'
+  grossIncomeCents: bigint('gross_income_cents', { mode: 'number' }), // null until reported
+  royaltyCents: bigint('royalty_cents', { mode: 'number' }),          // null until reported
+  status: text('status', { enum: ['open', 'reported', 'paid'] })
+    .notNull()
+    .default('open'),
+  reportedBy: text('reported_by'),
+  reportedAt: timestamp('reported_at'),
+  paidConfirmedBy: text('paid_confirmed_by'),
+  paidAt: timestamp('paid_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type RoyaltyPeriodRow = typeof royaltyPeriods.$inferSelect;
