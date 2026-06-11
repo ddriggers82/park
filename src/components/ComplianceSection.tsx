@@ -110,7 +110,7 @@ export function ComplianceSection({
                   <td>
                     {t.proofUrl ? (
                       <a
-                        href={t.proofUrl}
+                        href={`/api/receipts?p=${encodeURIComponent(t.proofUrl)}`}
                         target="_blank"
                         rel="noreferrer"
                         aria-label={`View tax payment proof for ${t.parcelGroup} due ${t.dueDateISO} (opens in new tab)`}
@@ -246,7 +246,7 @@ export function ComplianceSection({
                     <td>
                       {p.declarationsUrl ? (
                         <a
-                          href={p.declarationsUrl}
+                          href={`/api/receipts?p=${encodeURIComponent(p.declarationsUrl)}`}
                           target="_blank"
                           rel="noreferrer"
                           aria-label={`View declarations for ${p.carrier} policy ${p.policyNumber} (opens in new tab)`}

@@ -155,7 +155,7 @@ export default async function Home() {
                   <td>
                     {c.receiptUrl ? (
                       <a
-                        href={c.receiptUrl}
+                        href={`/api/receipts?p=${encodeURIComponent(c.receiptUrl)}`}
                         target="_blank"
                         rel="noreferrer"
                         aria-label={`View receipt for credit: ${c.description} (opens in new tab)`}
