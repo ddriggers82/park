@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 
 const hasDb = !!(process.env.DATABASE_URL_TEST || process.env.DATABASE_URL);
 
+
 describe.skipIf(!hasDb)('repository (integration)', () => {
   let repo: typeof import('./repository');
   let loanId: number;
@@ -44,5 +45,51 @@ describe.skipIf(!hasDb)('repository (integration)', () => {
     await repo.reverseExpenseCredit(credit.id, 'user_seller');
     const list = await repo.listExpenseCredits(loanId);
     expect(list.find((c) => c.id === credit.id)?.status).toBe('reversed');
+  });
+
+  describe('plaid-repository', () => {
+    it('savePlaidItem creates a new item and getPlaidItem retrieves it', async () => {
+      const { savePlaidItem, getPlaidItem } = await import('./plaid-repository');
+
+      await savePlaidItem(loanId, 'access-sandbox-test-token', 'item_test_001');
+      const item = await getPlaidItem(loanId);
+      expect(item).not.toBeNull();
+      expect(item!.itemId).toBe('item_test_001');
+      // access token is stored but never asserted in logs
+    });
+
+    it('savePlaidItem replaces an existing item on re-connect', async () => {
+      const { savePlaidItem, getPlaidItem } = await import('./plaid-repository');
+
+      await savePlaidItem(loanId, 'access-sandbox-old', 'item_old');
+      await savePlaidItem(loanId, 'access-sandbox-new', 'item_new');
+      const item = await getPlaidItem(loanId);
+      expect(item!.itemId).toBe('item_new');
+      expect(item!.syncCursor).toBeNull(); // cursor reset on re-connect
+    });
+
+    it('updateSyncCursor stores the cursor', async () => {
+      const { savePlaidItem, getPlaidItem, updateSyncCursor } = await import('./plaid-repository');
+
+      const saved = await savePlaidItem(loanId, 'access-sandbox-cur', 'item_cur');
+      await updateSyncCursor(saved.id, 'cursor_abc123');
+      const item = await getPlaidItem(loanId);
+      expect(item!.syncCursor).toBe('cursor_abc123');
+    });
+
+    it('insertPlaidPayment is idempotent: second call with same plaidTxnId returns false', async () => {
+      const { insertPlaidPayment } = await import('./plaid-repository');
+
+      const payload = {
+        periodIndex: 1,
+        amountCents: 187_218,
+        postedDate: '2026-05-03',
+        plaidTxnId: 'txn_dedup_test_001',
+      };
+      const first = await insertPlaidPayment(loanId, payload);
+      const second = await insertPlaidPayment(loanId, payload);
+      expect(first).toBe(true);
+      expect(second).toBe(false);
+    });
   });
 });
