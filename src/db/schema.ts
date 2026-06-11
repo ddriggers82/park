@@ -54,3 +54,15 @@ export const expenseCredits = pgTable('expense_credits', {
 export type LoanRow = typeof loans.$inferSelect;
 export type PaymentRow = typeof payments.$inferSelect;
 export type ExpenseCreditRow = typeof expenseCredits.$inferSelect;
+
+// One row per waived period per loan.
+// Upserting on (loanId, periodIndex) allows a seller to re-waive without duplication.
+export const lateFeeWaivers = pgTable('late_fee_waivers', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  loanId: bigint('loan_id', { mode: 'number' }).notNull(),
+  periodIndex: integer('period_index').notNull(),
+  waivedBy: text('waived_by').notNull(), // Clerk user id (seller)
+  waivedAt: timestamp('waived_at').defaultNow().notNull(),
+});
+
+export type LateFeeWaiverRow = typeof lateFeeWaivers.$inferSelect;
