@@ -33,5 +33,24 @@ export const payments = pgTable('payments', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const expenseCredits = pgTable('expense_credits', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  loanId: bigint('loan_id', { mode: 'number' })
+    .notNull()
+    .references(() => loans.id),
+  periodIndex: integer('period_index').notNull(),
+  amountCents: bigint('amount_cents', { mode: 'number' }).notNull(),
+  description: text('description').notNull(),
+  receiptUrl: text('receipt_url'),
+  status: text('status', { enum: ['applied', 'reversed'] })
+    .notNull()
+    .default('applied'),
+  createdBy: text('created_by').notNull(), // Clerk user id
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  reversedAt: timestamp('reversed_at'),
+  reversedBy: text('reversed_by'),
+});
+
 export type LoanRow = typeof loans.$inferSelect;
 export type PaymentRow = typeof payments.$inferSelect;
+export type ExpenseCreditRow = typeof expenseCredits.$inferSelect;
