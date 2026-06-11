@@ -44,6 +44,33 @@ describe('generateSchedule — golden master (no extra payments)', () => {
   it('total interest matches', () => {
     expect(r.totalInterestCents).toBe(7366240);     // $73,662.40
   });
+
+  it('reports no payments made when none are applied', () => {
+    expect(r.paidPeriods).toBe(0);
+    expect(r.paymentsRemaining).toBe(121);
+    expect(r.lastPaymentDate).toBeNull();
+    expect(r.lastPaymentCents).toBeNull();
+    expect(r.currentBalanceCents).toBe(15_100_000); // full principal, nothing paid
+  });
+});
+
+describe('generateSchedule — payment-progress fields with actual payments', () => {
+  // Two real payments: month 1 on-schedule, month 2 a $2,000 overpay.
+  const r = generateSchedule(TERMS, [{ amountCents: 187_218 }, { amountCents: 200_000 }]);
+
+  it('counts paid vs remaining from the actual boundary', () => {
+    expect(r.paidPeriods).toBe(2);
+    expect(r.paymentsRemaining).toBe(r.periods - 2);
+  });
+
+  it('surfaces the last actual payment date and amount', () => {
+    expect(r.lastPaymentDate).toBe('2026-06-01');
+    expect(r.lastPaymentCents).toBe(200_000);       // $2,000.00
+  });
+
+  it('payoff amount is the balance after the last actual payment', () => {
+    expect(r.currentBalanceCents).toBe(r.rows[1].balanceCents);
+  });
 });
 
 describe('generateSchedule — extra principal shortens the term', () => {

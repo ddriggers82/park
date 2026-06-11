@@ -48,16 +48,20 @@ export default async function Home() {
             <dd className="stat-value" style={{ margin: 0 }}>{schedule.payoffDate}</dd>
           </div>
           <div className="stat-item">
-            <dt className="stat-label">Payments</dt>
-            <dd className="stat-value" style={{ margin: 0 }}>{schedule.periods}</dd>
+            <dt className="stat-label">Last payment</dt>
+            <dd className="stat-value" style={{ margin: 0 }}>
+              {schedule.lastPaymentDate
+                ? `${formatCents(schedule.lastPaymentCents ?? 0)} on ${schedule.lastPaymentDate}`
+                : '—'}
+            </dd>
           </div>
           <div className="stat-item">
-            <dt className="stat-label">Total interest</dt>
-            <dd className="stat-value" style={{ margin: 0 }}>{formatCents(schedule.totalInterestCents)}</dd>
+            <dt className="stat-label">Payments left</dt>
+            <dd className="stat-value" style={{ margin: 0 }}>{schedule.paymentsRemaining}</dd>
           </div>
           <div className="stat-item">
-            <dt className="stat-label">Final balance</dt>
-            <dd className="stat-value stat-value--prominent" style={{ margin: 0 }}>{formatCents(schedule.finalBalanceCents)}</dd>
+            <dt className="stat-label">Payoff amount</dt>
+            <dd className="stat-value stat-value--prominent" style={{ margin: 0 }}>{formatCents(schedule.currentBalanceCents)}</dd>
           </div>
         </dl>
       </div>
