@@ -7,3 +7,6 @@ next-env.d.ts
 rvpark/Checking.csv
 rvpark/*.csv
 .playwright-mcp/
+
+# Windows download artifacts (NTFS Alternate Data Streams)
+*:Zone.Identifier
