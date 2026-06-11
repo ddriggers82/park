@@ -8,8 +8,11 @@ import { PlaidSection } from '../components/PlaidSection';
 import { loadLateFeeSummary } from './late-fees-actions';
 import { loadRoyaltyPeriods } from './royalty-actions';
 import { loadTaxObligations, loadInsurancePolicies } from './compliance-actions';
+import { SubmitButton } from '../components/SubmitButton';
+import { ConfirmSubmit } from '../components/ConfirmSubmit';
 
 export const dynamic = 'force-dynamic';
+export const metadata = { title: 'Dashboard | Park Payments' };
 
 export default async function Home() {
   const role = await getCurrentRole();
@@ -26,115 +29,158 @@ export default async function Home() {
 
   return (
     <main>
-      <h1>Anchor River Note</h1>
+      <h1 style={{ fontSize: '1.375rem', fontWeight: 700, margin: '0 0 20px', letterSpacing: '-0.01em' }}>
+        Anchor River Note
+      </h1>
+
       {!role && (
-        <p style={{ color: '#a00' }}>
+        <p className="alert-warning">
           Your account has no role assigned yet. Ask the seller to set it.
         </p>
       )}
-      <p>
-        Payoff: <strong>{schedule.payoffDate}</strong> · Payments:{' '}
-        <strong>{schedule.periods}</strong> · Total interest:{' '}
-        <strong>{formatCents(schedule.totalInterestCents)}</strong> · Final
-        balance: <strong>{formatCents(schedule.finalBalanceCents)}</strong>
-      </p>
 
+      {/* Summary stat row */}
+      <div className="card">
+        <h2>Summary</h2>
+        <dl className="stat-row">
+          <div className="stat-item">
+            <dt className="stat-label">Payoff date</dt>
+            <dd className="stat-value" style={{ margin: 0 }}>{schedule.payoffDate}</dd>
+          </div>
+          <div className="stat-item">
+            <dt className="stat-label">Payments</dt>
+            <dd className="stat-value" style={{ margin: 0 }}>{schedule.periods}</dd>
+          </div>
+          <div className="stat-item">
+            <dt className="stat-label">Total interest</dt>
+            <dd className="stat-value" style={{ margin: 0 }}>{formatCents(schedule.totalInterestCents)}</dd>
+          </div>
+          <div className="stat-item">
+            <dt className="stat-label">Final balance</dt>
+            <dd className="stat-value stat-value--prominent" style={{ margin: 0 }}>{formatCents(schedule.finalBalanceCents)}</dd>
+          </div>
+        </dl>
+      </div>
+
+      {/* Record a payment (seller only) */}
       {role === 'seller' && (
-        <form action={submitPayment} style={{ margin: '16px 0' }}>
-          <fieldset style={{ display: 'inline-flex', gap: 8, alignItems: 'end' }}>
-            <legend>Record a payment</legend>
-            <label>
-              Period
-              <br />
-              <input name="periodIndex" type="number" min="1" required />
-            </label>
-            <label>
-              Amount ($)
-              <br />
-              <input name="amountDollars" type="number" step="0.01" min="0" required />
-            </label>
-            <label>
-              Posted date
-              <br />
-              <input name="postedDate" type="date" required />
-            </label>
-            <button type="submit">Add</button>
-          </fieldset>
-        </form>
+        <div className="card">
+          <h2>Record a payment</h2>
+          <form action={submitPayment}>
+            <fieldset>
+              <legend>Payment details</legend>
+              <div className="form-row">
+                <div className="form-field">
+                  <label htmlFor="periodIndex">Period</label>
+                  <input id="periodIndex" name="periodIndex" type="number" min="1" required style={{ width: 80 }} />
+                </div>
+                <div className="form-field">
+                  <label htmlFor="amountDollars">Amount ($)</label>
+                  <input id="amountDollars" name="amountDollars" type="number" step="0.01" min="0" required style={{ width: 120 }} />
+                </div>
+                <div className="form-field">
+                  <label htmlFor="postedDate">Posted date</label>
+                  <input id="postedDate" name="postedDate" type="date" required max={todayISO} style={{ width: 150 }} />
+                </div>
+                <div className="form-field" style={{ justifyContent: 'flex-end' }}>
+                  <SubmitButton variant="primary">Add</SubmitButton>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
       )}
 
-      <table cellPadding={6} style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead>
-          <tr style={{ textAlign: 'right', borderBottom: '2px solid #333' }}>
-            <th style={{ textAlign: 'left' }}>#</th>
-            <th style={{ textAlign: 'left' }}>Due</th>
-            <th>Payment</th>
-            <th>Interest</th>
-            <th>Principal</th>
-            <th>Balance</th>
-          </tr>
-        </thead>
-        <tbody>
-          {schedule.rows.map((row) => (
-            <tr
-              key={row.index}
-              style={{
-                textAlign: 'right',
-                borderBottom: '1px solid #ddd',
-                background: row.isExtra ? '#eef9ee' : undefined,
-              }}
-            >
-              <td style={{ textAlign: 'left' }}>{row.index}</td>
-              <td style={{ textAlign: 'left' }}>{row.dueDate}</td>
-              <td>{formatCents(row.appliedCents)}</td>
-              <td>{formatCents(row.interestCents)}</td>
-              <td>{formatCents(row.principalCents)}</td>
-              <td>{formatCents(row.balanceCents)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <section style={{ marginTop: 32 }}>
+      {/* Expense credits */}
+      <section className="card">
         <h2>Expense credits</h2>
-        <form action={submitCredit} encType="multipart/form-data" style={{ margin: '12px 0' }}>
-          <fieldset style={{ display: 'inline-flex', gap: 8, alignItems: 'end' }}>
+        <form action={submitCredit} encType="multipart/form-data" style={{ marginBottom: 16 }}>
+          <fieldset>
             <legend>Log a credit (applies to the current month)</legend>
-            <label>Amount ($)<br /><input name="amountDollars" type="number" step="0.01" min="0" required /></label>
-            <label>Description<br /><input name="description" type="text" required /></label>
-            <label>Receipt<br /><input name="receipt" type="file" accept="image/*,application/pdf" /></label>
-            <button type="submit">Add credit</button>
+            <div className="form-row">
+              <div className="form-field">
+                <label htmlFor="creditAmount">Amount ($)</label>
+                <input id="creditAmount" name="amountDollars" type="number" step="0.01" min="0" required style={{ width: 120 }} />
+              </div>
+              <div className="form-field" style={{ flex: '1 1 200px' }}>
+                <label htmlFor="creditDesc">Description</label>
+                <input id="creditDesc" name="description" type="text" required />
+              </div>
+              <div className="form-field">
+                <label htmlFor="creditReceipt">Receipt</label>
+                <input id="creditReceipt" name="receipt" type="file" accept="image/*,application/pdf" />
+              </div>
+              <div className="form-field" style={{ justifyContent: 'flex-end' }}>
+                <SubmitButton variant="primary">Add credit</SubmitButton>
+              </div>
+            </div>
           </fieldset>
         </form>
-        <table cellPadding={6} style={{ borderCollapse: 'collapse', width: '100%' }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid #333' }}>
-              <th>Period</th><th>Amount</th><th>Description</th><th>Status</th><th>Receipt</th>
-              {role === 'seller' && <th></th>}
-            </tr>
-          </thead>
-          <tbody>
-            {credits.map((c) => (
-              <tr key={c.id} style={{ borderBottom: '1px solid #ddd', opacity: c.status === 'reversed' ? 0.5 : 1 }}>
-                <td>{c.periodIndex}</td>
-                <td>{formatCents(c.amountCents)}</td>
-                <td>{c.description}</td>
-                <td>{c.status}</td>
-                <td>{c.receiptUrl ? <a href={c.receiptUrl} target="_blank" rel="noreferrer">view</a> : '—'}</td>
-                {role === 'seller' && (
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Period</th>
+                <th scope="col" className="num">Amount</th>
+                <th scope="col">Description</th>
+                <th scope="col">Status</th>
+                <th scope="col">Receipt</th>
+                {role === 'seller' && <th scope="col"><span className="visually-hidden">Actions</span></th>}
+              </tr>
+            </thead>
+            <tbody>
+              {credits.length === 0 && (
+                <tr>
+                  <td colSpan={role === 'seller' ? 6 : 5} style={{ color: 'var(--sub)', fontStyle: 'italic' }}>
+                    No expense credits recorded yet.
+                  </td>
+                </tr>
+              )}
+              {credits.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.periodIndex}</td>
+                  <td className="num">{formatCents(c.amountCents)}</td>
                   <td>
-                    {c.status === 'applied' && (
-                      <form action={reverseCredit}>
-                        <input type="hidden" name="creditId" value={c.id} />
-                        <button type="submit">Reverse</button>
-                      </form>
+                    {c.status === 'reversed' ? (
+                      <span className="status-reversed">{c.description}</span>
+                    ) : (
+                      c.description
                     )}
                   </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <td>{c.status}</td>
+                  <td>
+                    {c.receiptUrl ? (
+                      <a
+                        href={c.receiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`View receipt for credit: ${c.description} (opens in new tab)`}
+                      >
+                        view
+                      </a>
+                    ) : (
+                      <span aria-hidden="true">—</span>
+                    )}
+                  </td>
+                  {role === 'seller' && (
+                    <td>
+                      {c.status === 'applied' && (
+                        <form action={reverseCredit}>
+                          <input type="hidden" name="creditId" value={c.id} />
+                          <ConfirmSubmit message="Reverse this credit?" variant="destructive">
+                            Reverse
+                          </ConfirmSubmit>
+                        </form>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
+
       <LateFeesSection summary={lateFeeSummary} isSeller={role === 'seller'} />
       <RoyaltySection role={role} periods={royaltyPeriods} />
       <ComplianceSection
@@ -144,6 +190,45 @@ export default async function Home() {
         todayISO={todayISO}
       />
       {role === 'seller' && <PlaidSection />}
+
+      {/* Amortization schedule - collapsed by default, placed below actionable content */}
+      <section className="card">
+        <h2>Amortization schedule</h2>
+        <details className="schedule-details">
+          <summary>
+            Amortization schedule ({schedule.rows.length} periods)
+          </summary>
+          <div className="table-wrap" style={{ marginTop: 12 }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Due</th>
+                  <th scope="col" className="num">Payment</th>
+                  <th scope="col" className="num">Interest</th>
+                  <th scope="col" className="num">Principal</th>
+                  <th scope="col" className="num">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.rows.map((row) => (
+                  <tr key={row.index} className={row.isExtra ? 'row-extra' : undefined}>
+                    <td>{row.index}</td>
+                    <td>{row.dueDate}</td>
+                    <td className="num">
+                      {formatCents(row.appliedCents)}
+                      {row.isExtra && <span className="badge badge-extra">Extra</span>}
+                    </td>
+                    <td className="num">{formatCents(row.interestCents)}</td>
+                    <td className="num">{formatCents(row.principalCents)}</td>
+                    <td className="num">{formatCents(row.balanceCents)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
     </main>
   );
 }
