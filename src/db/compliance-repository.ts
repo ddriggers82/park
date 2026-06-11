@@ -42,6 +42,19 @@ export async function markTaxPaid(
     .where(eq(taxObligations.id, obligationId));
 }
 
+export async function updateTaxStatusByPin(
+  parcelPin: string,
+  input: { owedCents: number },
+): Promise<number> {
+  const status = input.owedCents <= 0 ? 'paid' : 'open';
+  const res = await db
+    .update(taxObligations)
+    .set({ status, amountCents: input.owedCents, lastCheckedAt: new Date() })
+    .where(eq(taxObligations.parcelPin, parcelPin))
+    .returning({ id: taxObligations.id });
+  return res.length;
+}
+
 export async function listTaxObligations(): Promise<TaxObligationRow[]> {
   return db
     .select()
