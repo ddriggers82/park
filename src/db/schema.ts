@@ -31,7 +31,9 @@ export const payments = pgTable('payments', {
     .default('manual'),
   postedDate: date('posted_date').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  plaidTxnId: text('plaid_txn_id').unique(),
+  // Dedup is enforced in code (plaid-repository pre-insert check), not a DB unique
+  // constraint, to avoid a hazardous constraint-add migration against existing rows.
+  plaidTxnId: text('plaid_txn_id'),
 });
 
 export const expenseCredits = pgTable('expense_credits', {
