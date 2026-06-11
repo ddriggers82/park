@@ -102,6 +102,7 @@ export const taxObligations = pgTable('tax_obligations', {
   parcelPin: text('parcel_pin'),
   parcelUrl: text('parcel_url'),
   amountCents: bigint('amount_cents', { mode: 'number' }),
+  lastCheckedAt: timestamp('last_checked_at'),
   createdBy: text('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
