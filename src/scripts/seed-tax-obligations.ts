@@ -9,7 +9,7 @@ async function main() {
 
   const obligations = [
     {
-      parcelGroup: 'Parcel A (Buyer-owned)',
+      parcelGroup: 'Parcel A (buyer-owned, buyer pays)',
       parcelPin: '16902303',
       parcelUrl:
         'https://kpb.publicaccessnow.com/PropertyTax/TaxSearch/Account.aspx?p=16902303&a=53501',
@@ -19,7 +19,7 @@ async function main() {
       createdBy: 'system',
     },
     {
-      parcelGroup: 'Parcel B (Buyer-owned)',
+      parcelGroup: 'Parcel B (buyer-owned, buyer pays)',
       parcelPin: '16902302',
       parcelUrl:
         'https://kpb.publicaccessnow.com/PropertyTax/TaxSearch/Account.aspx?p=16902302&a=53500',
@@ -29,7 +29,7 @@ async function main() {
       createdBy: 'system',
     },
     {
-      parcelGroup: 'Parcel C - Option Property (Seller-owned)',
+      parcelGroup: 'Parcel C - Option Property (seller-owned, buyer pays per contract §27a)',
       parcelPin: '16902102',
       parcelUrl:
         'https://kpb.publicaccessnow.com/PropertyTax/TaxSearch/Account.aspx?p=16902102&a=53485',
