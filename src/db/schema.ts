@@ -31,6 +31,7 @@ export const payments = pgTable('payments', {
     .default('manual'),
   postedDate: date('posted_date').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  plaidTxnId: text('plaid_txn_id').unique(),
 });
 
 export const expenseCredits = pgTable('expense_credits', {
@@ -119,3 +120,24 @@ export const insurancePolicies = pgTable('insurance_policies', {
 });
 
 export type InsurancePolicyRow = typeof insurancePolicies.$inferSelect;
+
+// ---- Plaid integration ----
+// NOTE: if schema is reorganized into src/db/schema/, this block moves to
+//       src/db/schema/plaid.ts. Until then, append here.
+
+export const plaidItems = pgTable('plaid_items', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  loanId: bigint('loan_id', { mode: 'number' })
+    .notNull()
+    .references(() => loans.id),
+  // SECURITY: access_token is a bearer credential with permanent read access
+  // to the seller's Wells Fargo account. Stored plaintext here; a secure-phase
+  // task should encrypt with PLAID_TOKEN_ENCRYPTION_KEY before insert.
+  accessToken: text('access_token').notNull(),
+  itemId: text('item_id').notNull(),
+  syncCursor: text('sync_cursor'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type PlaidItemRow = typeof plaidItems.$inferSelect;
