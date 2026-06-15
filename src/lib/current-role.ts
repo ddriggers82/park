@@ -28,3 +28,15 @@ export async function requireSeller(): Promise<void> {
     throw new Error('Forbidden: seller role required');
   }
 }
+
+/**
+ * Require any assigned role (buyer or seller). Use to gate reads of loan data so
+ * a logged-in account with no role cannot reach it via a direct action call.
+ */
+export async function requireAnyRole(): Promise<Role> {
+  const role = await getCurrentRole();
+  if (role !== 'buyer' && role !== 'seller') {
+    throw new Error('Forbidden: no role assigned');
+  }
+  return role;
+}

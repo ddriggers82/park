@@ -13,11 +13,12 @@ import {
 } from '../db/repository';
 import { generateSchedule, type ScheduleResult } from '../lib/amortization';
 import { dollarsToCents } from '../lib/money';
-import { requireSeller, getCurrentRole } from '../lib/current-role';
+import { requireSeller, getCurrentRole, requireAnyRole } from '../lib/current-role';
 import { currentPeriodIndex } from '../lib/period';
 import { uploadReceipt } from '../lib/blob';
 
 export async function loadSchedule(): Promise<ScheduleResult> {
+  await requireAnyRole();
   const loanId = await ensureAnchorRiverLoan();
   const terms = await getLoanTerms(loanId);
   const applied = await getAppliedPayments(loanId);
@@ -91,6 +92,7 @@ export async function reverseCredit(formData: FormData): Promise<void> {
 }
 
 export async function loadCredits() {
+  await requireAnyRole();
   const loanId = await ensureAnchorRiverLoan();
   return listExpenseCredits(loanId);
 }
