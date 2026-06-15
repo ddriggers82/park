@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
 import { Products, CountryCode } from 'plaid';
-import { plaid } from '../lib/plaid';
+import { plaid, plaidCall } from '../lib/plaid';
 import { matchTransactionToPeriod } from '../lib/plaid-match';
 import {
   savePlaidItem,
@@ -37,13 +37,15 @@ export async function createLinkToken(): Promise<string> {
   const { userId } = await auth();
   if (!userId) throw new Error('Unauthorized');
 
-  const res = await plaid.linkTokenCreate({
-    user: { client_user_id: userId },
-    client_name: 'Park Payments',
-    products: [Products.Transactions],
-    country_codes: [CountryCode.Us],
-    language: 'en',
-  });
+  const res = await plaidCall(() =>
+    plaid.linkTokenCreate({
+      user: { client_user_id: userId },
+      client_name: 'Park Payments',
+      products: [Products.Transactions],
+      country_codes: [CountryCode.Us],
+      language: 'en',
+    }),
+  );
   return res.data.link_token;
 }
 
@@ -56,7 +58,9 @@ export async function exchangePublicToken(publicToken: string): Promise<void> {
   await requireSeller();
   const loanId = await ensureAnchorRiverLoan();
 
-  const res = await plaid.itemPublicTokenExchange({ public_token: publicToken });
+  const res = await plaidCall(() =>
+    plaid.itemPublicTokenExchange({ public_token: publicToken }),
+  );
   const accessToken = res.data.access_token;
   const itemId = res.data.item_id;
 
@@ -81,10 +85,12 @@ export async function syncTransactions(): Promise<SyncResult> {
   const allAdded: Array<{ transaction_id: string; amount: number; date: string; name: string }> = [];
 
   while (hasMore) {
-    const res = await plaid.transactionsSync({
-      access_token: item.accessToken,
-      cursor,
-    });
+    const res = await plaidCall(() =>
+      plaid.transactionsSync({
+        access_token: item.accessToken,
+        cursor,
+      }),
+    );
     allAdded.push(
       ...res.data.added.map((t) => ({
         transaction_id: t.transaction_id,

@@ -137,8 +137,10 @@ export const plaidItems = pgTable('plaid_items', {
     .notNull()
     .references(() => loans.id),
   // SECURITY: access_token is a bearer credential with permanent read access
-  // to the seller's Wells Fargo account. Stored plaintext here; a secure-phase
-  // task should encrypt with PLAID_TOKEN_ENCRYPTION_KEY before insert.
+  // to the seller's Wells Fargo account. Encrypted at rest with AES-256-GCM via
+  // PLAID_TOKEN_ENCRYPTION_KEY (see src/lib/crypto.ts); plaid-repository encrypts
+  // on write and decrypts on read. Legacy plaintext rows are transparently
+  // re-encrypted on next save.
   accessToken: text('access_token').notNull(),
   itemId: text('item_id').notNull(),
   syncCursor: text('sync_cursor'),
