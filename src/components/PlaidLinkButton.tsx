@@ -33,24 +33,15 @@ export function PlaidLinkButton({ linkToken, onSuccess }: Props) {
     },
     onExit: (err, metadata) => {
       if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY);
-      // Surface the structured Plaid error so OAuth/config failures are diagnosable.
-      console.error('[Plaid] onExit', {
-        error_code: err?.error_code,
-        error_type: err?.error_type,
-        error_message: err?.error_message,
-        display_message: err?.display_message,
-        institution: metadata?.institution,
-        status: metadata?.status,
-        request_id: metadata?.request_id,
-      });
-    },
-    onEvent: (eventName, metadata) => {
-      console.log('[Plaid] event', eventName, {
-        view: metadata?.view_name,
-        institution_id: metadata?.institution_id,
-        error_code: metadata?.error_code,
-        error_message: metadata?.error_message,
-      });
+      // Keep the structured Plaid error so OAuth/config failures stay diagnosable.
+      if (err) {
+        console.error('[Plaid] onExit', {
+          error_code: err.error_code,
+          error_type: err.error_type,
+          error_message: err.error_message,
+          request_id: metadata?.request_id,
+        });
+      }
     },
   });
 
