@@ -33,6 +33,15 @@ export async function getLoanTerms(loanId: number): Promise<LoanTerms> {
   };
 }
 
+/** Raw payment ledger for a loan (one row per deposit), ordered by period then date. */
+export async function listPayments(loanId: number) {
+  return db
+    .select()
+    .from(payments)
+    .where(eq(payments.loanId, loanId))
+    .orderBy(asc(payments.periodIndex), asc(payments.postedDate));
+}
+
 export async function getAppliedPayments(
   loanId: number,
 ): Promise<AppliedPayment[]> {

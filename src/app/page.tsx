@@ -29,9 +29,19 @@ export default async function Home() {
 
   return (
     <main>
-      <h1 style={{ fontSize: '1.375rem', fontWeight: 700, margin: '0 0 20px', letterSpacing: '-0.01em' }}>
-        Anchor River Note
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '0 0 20px' }}>
+        <h1 style={{ fontSize: '1.375rem', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
+          Anchor River Note
+        </h1>
+        {role && (
+          <a
+            href="/api/export"
+            style={{ padding: '8px 14px', border: '1px solid var(--border, #d0d0d0)', borderRadius: 6, textDecoration: 'none', fontSize: '0.875rem', fontWeight: 600, whiteSpace: 'nowrap' }}
+          >
+            Download spreadsheet (.xlsx)
+          </a>
+        )}
+      </div>
 
       {!role && (
         <p className="alert-warning">
