@@ -41,7 +41,7 @@ export async function PlaidSection() {
             Wells Fargo connected.{' '}
             {item.syncCursor ? 'Last sync cursor stored.' : 'Not yet synced.'}
           </p>
-          <form action={async () => { await syncTransactions(); }}>
+          <form action={async () => { 'use server'; await syncTransactions(); }}>
             <SubmitButton variant="secondary">Sync now</SubmitButton>
           </form>
         </div>
