@@ -37,6 +37,10 @@ export async function createLinkToken(): Promise<string> {
   const { userId } = await auth();
   if (!userId) throw new Error('Unauthorized');
 
+  // OAuth institutions (e.g. Wells Fargo) require a redirect_uri in production that
+  // is also registered in the Plaid Dashboard. Only send it when configured, so the
+  // sandbox preview/dev flows (no registered URI) keep working unchanged.
+  const redirectUri = process.env.PLAID_REDIRECT_URI;
   const res = await plaidCall(() =>
     plaid.linkTokenCreate({
       user: { client_user_id: userId },
@@ -44,6 +48,7 @@ export async function createLinkToken(): Promise<string> {
       products: [Products.Transactions],
       country_codes: [CountryCode.Us],
       language: 'en',
+      ...(redirectUri ? { redirect_uri: redirectUri } : {}),
     }),
   );
   return res.data.link_token;
